@@ -1,5 +1,17 @@
 # Quacktor Port Mapper Daemon
 
+## Prerequisites
+
+* Go 1.15 or up
+
+## Installation
+
+qpmd can be install via `go get`.
+
+```
+go get github.com/Azer0s/qpmd
+```
+
 ## Usage 
 
 To get qmpd up and running you first have to install the daemon and then start it.
