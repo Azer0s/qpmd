@@ -1,4 +1,4 @@
-package main
+package qpmd
 
 type RequestType string
 

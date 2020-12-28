@@ -1,7 +1,8 @@
-package main
+package internals
 
 import (
 	"fmt"
+	"github.com/takama/daemon"
 	"log"
 	"net"
 	"os"
@@ -9,15 +10,13 @@ import (
 	"runtime"
 	"syscall"
 	"time"
-
-	"github.com/takama/daemon"
 )
 
 const (
 	name        = "qpmd"
 	description = "quacktor port mapping daemon"
-	port = ":7161"
-	timeout = time.Second * 30
+	port        = ":7161"
+	timeout     = time.Second * 30
 )
 
 var stdLog, errLog *log.Logger
@@ -102,11 +101,11 @@ func acceptConnection(listener net.Listener, listen chan<- net.Conn) {
 }
 
 func init() {
-	stdLog = log.New(os.Stdout, "[qpmd] ", log.Ldate | log.Ltime)
-	errLog = log.New(os.Stderr, "[qpmd] ", log.Ldate | log.Ltime)
+	stdLog = log.New(os.Stdout, "[qpmd] ", log.Ldate|log.Ltime)
+	errLog = log.New(os.Stderr, "[qpmd] ", log.Ldate|log.Ltime)
 }
 
-func main() {
+func Launch() {
 	var srv daemon.Daemon
 	var err error
 

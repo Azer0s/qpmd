@@ -1,23 +1,24 @@
-package main
+package internals
 
 import (
 	"encoding/json"
+	"github.com/Azer0s/qpmd"
 	"net"
 	"time"
 )
 
-func readRequest(client net.Conn) (Request, error) {
+func readRequest(client net.Conn) (qpmd.Request, error) {
 	c := client.RemoteAddr().String()
 
 	buf := make([]byte, 4096)
 	n, err := client.Read(buf)
 	if n == 0 || err != nil {
 		errLog.Printf("Failed to read from %s", c)
-		return Request{}, err
+		return qpmd.Request{}, err
 	}
 	stdLog.Printf("Read %d bytes from %s", n, c)
 
-	req := Request{}
+	req := qpmd.Request{}
 	err = json.Unmarshal(buf[:n], &req)
 	if err != nil {
 		errLog.Printf("Couldn't parse JSON request from %s", c)
@@ -27,8 +28,8 @@ func readRequest(client net.Conn) (Request, error) {
 	return req, nil
 }
 
-func writeResponse(client net.Conn, response Response) error {
-	response.Data[TIMESTAMP] = time.Now().Unix()
+func writeResponse(client net.Conn, response qpmd.Response) error {
+	response.Data[qpmd.TIMESTAMP] = time.Now().Unix()
 
 	b, err := json.Marshal(response)
 
@@ -48,8 +49,8 @@ func writeResponse(client net.Conn, response Response) error {
 }
 
 func writeError(client net.Conn, err error) error {
-	return writeResponse(client, Response{
-		ResponseType: RESPONSE_ERROR,
+	return writeResponse(client, qpmd.Response{
+		ResponseType: qpmd.RESPONSE_ERROR,
 		Data: map[string]interface{}{
 			"error": err.Error(),
 		},
@@ -57,15 +58,15 @@ func writeError(client net.Conn, err error) error {
 }
 
 func writeTimeout(client net.Conn) error {
-	return writeResponse(client, Response{
-		ResponseType: RESPONSE_TIMEOUT,
-		Data: map[string]interface{}{},
+	return writeResponse(client, qpmd.Response{
+		ResponseType: qpmd.RESPONSE_TIMEOUT,
+		Data:         map[string]interface{}{},
 	})
 }
 
 func writeOk(client net.Conn, data map[string]interface{}) error {
-	return writeResponse(client, Response{
-		ResponseType: RESPONSE_OK,
-		Data: data,
+	return writeResponse(client, qpmd.Response{
+		ResponseType: qpmd.RESPONSE_OK,
+		Data:         data,
 	})
 }

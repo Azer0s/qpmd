@@ -1,6 +1,7 @@
-package main
+package internals
 
 import (
+	"github.com/Azer0s/qpmd"
 	"net"
 	"time"
 )
@@ -33,12 +34,12 @@ func handleClient(client net.Conn) {
 	handleRequest(client, req)
 }
 
-func handleRequest(client net.Conn, req Request) {
+func handleRequest(client net.Conn, req qpmd.Request) {
 	switch req.RequestType {
-	case REQUEST_REGISTER:
-		handleRegister(client, req.Data[SYSTEM_NAME].(string), int(req.Data[PORT].(float64)), req.Data[ATTRIBUTES].(map[string]interface{}))
-	case REQUEST_LOOKUP:
-		handleLookup(client, req.Data[SYSTEM_NAME].(string))
+	case qpmd.REQUEST_REGISTER:
+		handleRegister(client, req.Data[qpmd.SYSTEM_NAME].(string), int(req.Data[qpmd.PORT].(float64)), req.Data[qpmd.ATTRIBUTES].(map[string]interface{}))
+	case qpmd.REQUEST_LOOKUP:
+		handleLookup(client, req.Data[qpmd.SYSTEM_NAME].(string))
 	}
 }
 
@@ -60,9 +61,9 @@ func handleLookup(client net.Conn, systemName string) {
 	}
 
 	err = writeOk(client, map[string]interface{}{
-		SYSTEM_NAME: s.name,
-		PORT: s.port,
-		ATTRIBUTES: s.attributes,
+		qpmd.SYSTEM_NAME: s.name,
+		qpmd.PORT:        s.port,
+		qpmd.ATTRIBUTES:  s.attributes,
 	})
 
 	if err != nil {
@@ -85,7 +86,7 @@ func handleRegister(client net.Conn, systemName string, port int, attributes map
 	}()
 
 	errChan := make(chan error)
-	reqChan := make(chan Request)
+	reqChan := make(chan qpmd.Request)
 
 	go func() {
 		for {
@@ -104,8 +105,8 @@ func handleRegister(client net.Conn, systemName string, port int, attributes map
 		timeoutChan := time.After(timeout)
 
 		select {
-		case req := <- reqChan:
-			if req.RequestType != HEARTBEAT {
+		case req := <-reqChan:
+			if req.RequestType != qpmd.HEARTBEAT {
 				errLog.Printf("Expected a heartbeat from %s, got a request of type %s", c, req.RequestType)
 				return
 			}
@@ -117,7 +118,7 @@ func handleRegister(client net.Conn, systemName string, port int, attributes map
 				errLog.Printf("Error while sending okay message to client %s, %s", c, err.Error())
 				return
 			}
-		case err := <- errChan:
+		case err := <-errChan:
 			err = writeError(client, err)
 
 			if err != nil {
@@ -125,7 +126,7 @@ func handleRegister(client net.Conn, systemName string, port int, attributes map
 			}
 
 			return
-		case <- timeoutChan:
+		case <-timeoutChan:
 			errLog.Printf("Didn't receive a heartbeat after 30 seconds from %s", c)
 			err := writeTimeout(client)
 
@@ -137,4 +138,3 @@ func handleRegister(client net.Conn, systemName string, port int, attributes map
 		}
 	}
 }
-

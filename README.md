@@ -6,10 +6,11 @@
 
 ## Installation
 
-qpmd can be install via `go get`.
+qpmd can be install via `go get`/`go install`.
 
 ```
 go get github.com/Azer0s/qpmd
+go install github.com/Azer0s/qpmd/cmd/qpmd
 ```
 
 ## Usage 

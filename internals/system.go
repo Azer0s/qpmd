@@ -1,4 +1,4 @@
-package main
+package internals
 
 import (
 	"errors"
@@ -41,7 +41,7 @@ func getSystem(systemName string) (system, error) {
 }
 
 type system struct {
-	name string
-	port int
+	name       string
+	port       int
 	attributes map[string]interface{}
 }
