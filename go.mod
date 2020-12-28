@@ -1,4 +1,4 @@
-module qpmd
+module github.com/Azer0s/qpmd
 
 go 1.15
 
