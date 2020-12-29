@@ -1,8 +1,8 @@
 package internals
 
 import (
-	"encoding/json"
 	"github.com/Azer0s/qpmd"
+	"github.com/vmihailenco/msgpack/v5"
 	"net"
 	"time"
 )
@@ -19,7 +19,7 @@ func readRequest(client net.Conn) (qpmd.Request, error) {
 	stdLog.Printf("Read %d bytes from %s", n, c)
 
 	req := qpmd.Request{}
-	err = json.Unmarshal(buf[:n], &req)
+	err = msgpack.Unmarshal(buf[:n], &req)
 	if err != nil {
 		errLog.Printf("Couldn't parse JSON request from %s", c)
 		return req, err
@@ -31,7 +31,7 @@ func readRequest(client net.Conn) (qpmd.Request, error) {
 func writeResponse(client net.Conn, response qpmd.Response) error {
 	response.Data[qpmd.TIMESTAMP] = time.Now().Unix()
 
-	b, err := json.Marshal(response)
+	b, err := msgpack.Marshal(response)
 
 	if err != nil {
 		return err

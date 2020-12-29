@@ -9,6 +9,6 @@ const RESPONSE_ERROR ResponseType = "error"
 const TIMESTAMP = "timestamp"
 
 type Response struct {
-	ResponseType ResponseType           `json:"response_type"`
-	Data         map[string]interface{} `json:"data"`
+	ResponseType ResponseType
+	Data         map[string]interface{}
 }

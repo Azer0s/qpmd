@@ -3,6 +3,8 @@ package internals
 import (
 	"github.com/Azer0s/qpmd"
 	"net"
+	"os"
+	"runtime"
 	"time"
 )
 
@@ -40,6 +42,16 @@ func handleRequest(client net.Conn, req qpmd.Request) {
 		handleRegister(client, req.Data[qpmd.SYSTEM_NAME].(string), int(req.Data[qpmd.PORT].(float64)), req.Data[qpmd.ATTRIBUTES].(map[string]interface{}))
 	case qpmd.REQUEST_LOOKUP:
 		handleLookup(client, req.Data[qpmd.SYSTEM_NAME].(string))
+	case qpmd.REQUEST_HELLO:
+		err := writeOk(client, map[string]interface{}{
+			"pid":     os.Getpid(),
+			"os":      runtime.GOOS,
+			"version": qpmd.VERSION,
+		})
+
+		if err != nil {
+			errLog.Printf("Error while sending okay message to client %s, %s", client.RemoteAddr().String(), err.Error())
+		}
 	}
 }
 
