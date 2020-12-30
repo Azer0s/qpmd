@@ -39,7 +39,7 @@ func handleClient(client net.Conn) {
 func handleRequest(client net.Conn, req qpmd.Request) {
 	switch req.RequestType {
 	case qpmd.REQUEST_REGISTER:
-		handleRegister(client, req.Data[qpmd.SYSTEM_NAME].(string), int(req.Data[qpmd.PORT].(float64)), req.Data[qpmd.ATTRIBUTES].(map[string]interface{}))
+		handleRegister(client, req.Data[qpmd.SYSTEM_NAME].(string), uint16(req.Data[qpmd.PORT].(float64)), req.Data[qpmd.MACHINE_ID].(string))
 	case qpmd.REQUEST_LOOKUP:
 		handleLookup(client, req.Data[qpmd.SYSTEM_NAME].(string))
 	case qpmd.REQUEST_HELLO:
@@ -75,7 +75,7 @@ func handleLookup(client net.Conn, systemName string) {
 	err = writeOk(client, map[string]interface{}{
 		qpmd.SYSTEM_NAME: s.name,
 		qpmd.PORT:        s.port,
-		qpmd.ATTRIBUTES:  s.attributes,
+		qpmd.MACHINE_ID:  s.machineId,
 	})
 
 	if err != nil {
@@ -83,14 +83,14 @@ func handleLookup(client net.Conn, systemName string) {
 	}
 }
 
-func handleRegister(client net.Conn, systemName string, port int, attributes map[string]interface{}) {
+func handleRegister(client net.Conn, systemName string, port uint16, machineId string) {
 	c := client.RemoteAddr().String()
 
 	stdLog.Printf("Handling registration request from client %s for system %s", c, systemName)
 
 	stdLog.Printf("Adding mapping from system %s to port %d", systemName, port)
 
-	addSystem(systemName, port, attributes)
+	addSystem(systemName, port, machineId)
 
 	defer func() {
 		stdLog.Printf("Removing system mapping from system %s to port %d", systemName, port)

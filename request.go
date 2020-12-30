@@ -9,7 +9,7 @@ const HEARTBEAT RequestType = "heartbeat"
 
 const SYSTEM_NAME = "system"
 const PORT = "port"
-const ATTRIBUTES = "attributes"
+const MACHINE_ID = "machine_id"
 
 type Request struct {
 	RequestType RequestType

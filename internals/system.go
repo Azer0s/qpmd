@@ -9,14 +9,14 @@ import (
 var systems = make(map[string]system)
 var systemsMu = &sync.RWMutex{}
 
-func addSystem(systemName string, port int, attributes map[string]interface{}) {
+func addSystem(systemName string, port uint16, machineId string) {
 	systemsMu.Lock()
 	defer systemsMu.Unlock()
 
 	systems[systemName] = system{
-		name:       systemName,
-		port:       port,
-		attributes: attributes,
+		name:      systemName,
+		port:      port,
+		machineId: machineId,
 	}
 }
 
@@ -41,7 +41,7 @@ func getSystem(systemName string) (system, error) {
 }
 
 type system struct {
-	name       string
-	port       int
-	attributes map[string]interface{}
+	name      string
+	port      uint16
+	machineId string
 }
