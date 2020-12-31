@@ -39,10 +39,12 @@ func handleClient(client net.Conn) {
 func handleRequest(client net.Conn, req qpmd.Request) {
 	switch req.RequestType {
 	case qpmd.REQUEST_REGISTER:
-		handleRegister(client, req.Data[qpmd.SYSTEM_NAME].(string), uint16(req.Data[qpmd.PORT].(float64)), req.Data[qpmd.MACHINE_ID].(string))
+		handleRegister(client, req.Data[qpmd.SYSTEM_NAME].(string), req.Data[qpmd.PORT].(uint16), req.Data[qpmd.MACHINE_ID].(string))
 	case qpmd.REQUEST_LOOKUP:
 		handleLookup(client, req.Data[qpmd.SYSTEM_NAME].(string))
 	case qpmd.REQUEST_HELLO:
+		addMachine(req.Data[qpmd.MACHINE_ID].(string), req.Data[qpmd.MESSAGE_GATEWAY_PORT].(uint16), req.Data[qpmd.GP_GATEWAY_PORT].(uint16))
+
 		err := writeOk(client, map[string]interface{}{
 			"pid":     os.Getpid(),
 			"os":      runtime.GOOS,
@@ -72,10 +74,26 @@ func handleLookup(client net.Conn, systemName string) {
 		return
 	}
 
+	m, err := getMachine(s.machineId)
+
+	if err != nil {
+		errLog.Printf("Error getting machine %s, %s", s.machineId, err.Error())
+		err = writeError(client, err)
+
+		if err != nil {
+			errLog.Printf("Error while sending error message to client %s, %s", c, err.Error())
+		}
+		return
+	}
+
 	err = writeOk(client, map[string]interface{}{
 		qpmd.SYSTEM_NAME: s.name,
 		qpmd.PORT:        s.port,
-		qpmd.MACHINE_ID:  s.machineId,
+		qpmd.MACHINE: map[string]interface{}{
+			qpmd.MACHINE_ID:           m.machineId,
+			qpmd.MESSAGE_GATEWAY_PORT: m.gatewayPort,
+			qpmd.GP_GATEWAY_PORT:      m.gpPort,
+		},
 	})
 
 	if err != nil {
