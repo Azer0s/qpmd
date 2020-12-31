@@ -43,17 +43,27 @@ func handleRequest(client net.Conn, req qpmd.Request) {
 	case qpmd.REQUEST_LOOKUP:
 		handleLookup(client, req.Data[qpmd.SYSTEM_NAME].(string))
 	case qpmd.REQUEST_HELLO:
-		addMachine(req.Data[qpmd.MACHINE_ID].(string), req.Data[qpmd.MESSAGE_GATEWAY_PORT].(uint16), req.Data[qpmd.GP_GATEWAY_PORT].(uint16))
+		handleHello(client, req.Data[qpmd.MACHINE_ID].(string), req.Data[qpmd.MESSAGE_GATEWAY_PORT].(uint16), req.Data[qpmd.GP_GATEWAY_PORT].(uint16))
+	}
+}
 
-		err := writeOk(client, map[string]interface{}{
-			"pid":     os.Getpid(),
-			"os":      runtime.GOOS,
-			"version": qpmd.VERSION,
-		})
+func handleHello(client net.Conn, machineId string, gatewayPort, gpPort uint16) {
+	c := client.RemoteAddr().String()
 
-		if err != nil {
-			errLog.Printf("Error while sending okay message to client %s, %s", client.RemoteAddr().String(), err.Error())
-		}
+	stdLog.Printf("Handling hello message from client %s", c)
+
+	addMachine(machineId, gatewayPort, gpPort)
+
+	stdLog.Printf("Adding machine mapping from machineId %s to gateway port %d and general purpose port %d", machineId, gatewayPort, gpPort)
+
+	err := writeOk(client, map[string]interface{}{
+		"pid":     os.Getpid(),
+		"os":      runtime.GOOS,
+		"version": qpmd.VERSION,
+	})
+
+	if err != nil {
+		errLog.Printf("Error while sending okay message to client %s, %s", client.RemoteAddr().String(), err.Error())
 	}
 }
 
@@ -114,6 +124,12 @@ func handleRegister(client net.Conn, systemName string, port uint16, machineId s
 		stdLog.Printf("Removing system mapping from system %s to port %d", systemName, port)
 		removeSystem(systemName)
 	}()
+
+	err := writeOk(client, map[string]interface{}{})
+	if err != nil {
+		errLog.Printf("Error while sending okay message to client %s, %s", c, err.Error())
+		return
+	}
 
 	errChan := make(chan error)
 	reqChan := make(chan qpmd.Request)
