@@ -2,6 +2,7 @@ package internals
 
 import (
 	"fmt"
+	"github.com/Azer0s/qpmd"
 	"github.com/takama/daemon"
 	"log"
 	"net"
@@ -28,7 +29,7 @@ type Service struct {
 
 // Manage by daemon commands or run the daemon
 func (service *Service) Manage() (string, error) {
-	usage := "Usage: qpmd install | remove | start | stop | status"
+	usage := "Usage: qpmd install | remove | start | stop | status | version"
 
 	if len(os.Args) > 1 {
 		command := os.Args[1]
@@ -43,6 +44,9 @@ func (service *Service) Manage() (string, error) {
 			return service.Stop()
 		case "status":
 			return service.Status()
+		case "version":
+			return fmt.Sprintln(description) +
+				fmt.Sprint("Version:  ", qpmd.VERSION), nil
 		default:
 			return usage, nil
 		}
